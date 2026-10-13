@@ -1,0 +1,14 @@
+{
+  "name": "serious-animator",
+  "description": "Narrated hand-drawn whiteboard explainer videos rendered from Claude-drawn SVG scenes.",
+  "owner": {
+    "name": "Denis"
+  },
+  "plugins": [
+    {
+      "name": "serious-animator",
+      "source": "./",
+      "description": "Narrated whiteboard explainer videos from a one-line idea."
+    }
+  ]
+}

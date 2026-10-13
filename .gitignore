@@ -1,0 +1,17 @@
+# local tooling
+.claude/
+.cursor/
+.aider/
+
+# build and render output
+/out/
+/dist/
+*.mp4
+*.wav
+examples/*/preview/
+/animations/
+preview/
+
+# python helper cache
+__pycache__/
+*.pyc

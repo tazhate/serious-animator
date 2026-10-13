@@ -1,0 +1,19 @@
+{
+  "name": "serious-animator",
+  "version": "0.1.0",
+  "description": "Narrated hand-drawn whiteboard explainer videos: Claude writes the script and draws SVG scenes, a Go renderer animates every stroke in sync with edge-tts narration.",
+  "author": {
+    "name": "Denis"
+  },
+  "homepage": "https://github.com/tazhate/serious-animator",
+  "repository": "https://github.com/tazhate/serious-animator",
+  "license": "MIT",
+  "keywords": [
+    "video",
+    "animation",
+    "whiteboard",
+    "explainer",
+    "svg",
+    "tts"
+  ]
+}

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <!-- Beat 1: heading and the resolver on the left -->
+  <g data-beat="1" stroke="#222" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <text x="800" y="110" font-size="76" text-anchor="middle" fill="#222" stroke="none">ПУТЬ ЗАПРОСА</text>
+    <rect id="resolver" x="230" y="430" width="260" height="110" rx="16" fill="#8ecae6"/>
+    <line x1="290" y1="430" x2="270" y2="370"/>
+    <line x1="430" y1="430" x2="450" y2="370"/>
+    <circle cx="275" cy="485" r="9" fill="#2a9d8f" stroke="none"/>
+    <circle cx="305" cy="485" r="9" fill="#2a9d8f" stroke="none"/>
+    <path d="M350 485 H460" fill="none" stroke-width="5"/>
+    <text x="360" y="620" font-size="52" text-anchor="middle" fill="#222" stroke="none">РЕЗОЛВЕР</text>
+  </g>
+
+  <!-- Beat 2: root server, top right -->
+  <g data-beat="2" stroke="#222" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path id="ask-root" d="M500 420 Q760 250 1030 245" fill="none" stroke-width="5"/>
+    <path d="M1004 228 L1032 245 L1005 262" fill="none" stroke-width="5"/>
+    <rect x="1060" y="200" width="170" height="90" rx="10" fill="#f4d35e"/>
+    <line x1="1060" y1="245" x2="1230" y2="245"/>
+    <circle cx="1205" cy="222" r="7" fill="#222" stroke="none"/>
+    <circle cx="1205" cy="268" r="7" fill="#222" stroke="none"/>
+    <text x="1260" y="262" font-size="48" fill="#222" stroke="none">КОРЕНЬ</text>
+  </g>
+
+  <!-- Beat 3: the com zone server -->
+  <g data-beat="3" stroke="#222" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <path id="ask-com" d="M505 470 Q780 430 1030 450" fill="none" stroke-width="5"/>
+    <path d="M1004 434 L1032 451 L1003 467" fill="none" stroke-width="5"/>
+    <rect x="1060" y="405" width="170" height="90" rx="10" fill="#f4a261"/>
+    <line x1="1060" y1="450" x2="1230" y2="450"/>
+    <circle cx="1205" cy="427" r="7" fill="#222" stroke="none"/>
+    <circle cx="1205" cy="473" r="7" fill="#222" stroke="none"/>
+    <text x="1260" y="467" font-size="48" fill="#222" stroke="none">ЗОНА COM</text>
+  </g>
+
+  <!-- Beat 4: the domain's server answers back -->
+  <g data-beat="4" stroke="#222" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="1060" y="610" width="170" height="90" rx="10" fill="#a7c957"/>
+    <line x1="1060" y1="655" x2="1230" y2="655"/>
+    <circle cx="1205" cy="632" r="7" fill="#222" stroke="none"/>
+    <circle cx="1205" cy="678" r="7" fill="#222" stroke="none"/>
+    <text x="1260" y="672" font-size="44" fill="#222" stroke="none">example.com</text>
+    <path id="answer" d="M1040 660 Q760 700 480 560" fill="none" stroke="#2a9d8f" stroke-width="6"/>
+    <path d="M488 590 L478 559 L510 560" fill="none" stroke="#2a9d8f" stroke-width="6"/>
+    <text x="760" y="760" font-size="48" text-anchor="middle" fill="#2a9d8f" stroke="none">ОТВЕТ: 93.184.216.34</text>
+  </g>
+</svg>

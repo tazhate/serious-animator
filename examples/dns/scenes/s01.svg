@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <!-- Beat 1: heading and the DNS "phone book" in the middle -->
+  <g data-beat="1" stroke="#222" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <text x="800" y="120" font-size="80" text-anchor="middle" fill="#222" stroke="none">КАК РАБОТАЕТ DNS</text>
+    <rect id="book" x="700" y="330" width="200" height="240" rx="14" fill="#f4d35e"/>
+    <line id="book-spine" x1="735" y1="330" x2="735" y2="570"/>
+    <path id="book-lines" d="M765 395 H865 M765 435 H865 M765 475 H840" fill="none" stroke-width="5"/>
+    <text x="800" y="650" font-size="56" text-anchor="middle" fill="#222" stroke="none">DNS</text>
+  </g>
+
+  <!-- Beat 2: the browser on the left -->
+  <g data-beat="2" stroke="#222" stroke-width="6" stroke-linejoin="round">
+    <rect id="browser" x="110" y="340" width="290" height="210" rx="14" fill="#ffffff"/>
+    <path id="browser-bar" d="M110 390 H400" fill="none"/>
+    <circle cx="140" cy="365" r="8" fill="#e63946" stroke="none"/>
+    <circle cx="166" cy="365" r="8" fill="#f4a261" stroke="none"/>
+    <circle cx="192" cy="365" r="8" fill="#2a9d8f" stroke="none"/>
+    <rect id="address-field" x="140" y="420" width="230" height="50" rx="10" fill="#edf6f9" stroke-width="4"/>
+    <text x="255" y="455" font-size="34" text-anchor="middle" fill="#1d3557" stroke="none">example.com</text>
+    <text x="255" y="630" font-size="52" text-anchor="middle" fill="#222" stroke="none">БРАУЗЕР</text>
+  </g>
+
+  <!-- Beat 3: the numeric address tag, top right -->
+  <g data-beat="3" stroke="#222" stroke-width="6" stroke-linejoin="round">
+    <path id="ip-tag" d="M1200 200 H1440 Q1460 200 1460 220 V270 Q1460 290 1440 290 H1200 L1170 245 Z" fill="#a7c957"/>
+    <circle cx="1198" cy="245" r="7" fill="#ffffff" stroke-width="4"/>
+    <text x="1320" y="258" font-size="38" text-anchor="middle" fill="#222" stroke="none">93.184.216.34</text>
+    <text x="1320" y="350" font-size="52" text-anchor="middle" fill="#222" stroke="none">IP-АДРЕС</text>
+  </g>
+
+  <!-- Beat 4: the server, and the question flowing browser -> DNS -> server -->
+  <g data-beat="4" stroke="#222" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="1240" y="430" width="170" height="60" rx="8" fill="#d9d9d9"/>
+    <rect x="1240" y="500" width="170" height="60" rx="8" fill="#d9d9d9"/>
+    <rect x="1240" y="570" width="170" height="60" rx="8" fill="#d9d9d9"/>
+    <circle cx="1380" cy="460" r="8" fill="#2a9d8f" stroke="none"/>
+    <circle cx="1380" cy="530" r="8" fill="#2a9d8f" stroke="none"/>
+    <circle cx="1380" cy="600" r="8" fill="#2a9d8f" stroke="none"/>
+    <text x="1325" y="710" font-size="52" text-anchor="middle" fill="#222" stroke="none">СЕРВЕР</text>
+    <path id="arrow-ask" d="M420 420 Q550 360 675 410" fill="none" stroke-width="5"/>
+    <path d="M650 392 L677 411 L645 422" fill="none" stroke-width="5"/>
+    <path id="arrow-go" d="M925 450 Q1080 400 1220 500" fill="none" stroke-width="5"/>
+    <path d="M1193 494 L1222 502 L1208 474" fill="none" stroke-width="5"/>
+  </g>
+</svg>

@@ -1,0 +1,32 @@
+#!/bin/sh
+# Builds the Go renderer on first use and after every plugin update, then
+# runs it. The build is keyed by a hash of the sources, so a stale binary is
+# never used.
+set -eu
+
+self=$(readlink -f "$0")
+root=$(dirname "$(dirname "$self")")
+cache="${XDG_CACHE_HOME:-$HOME/.cache}/serious-animator/bin"
+
+stamp=$(cd "$root" && find cmd internal assets go.mod go.sum -type f \
+	\( -name '*.go' -o -name 'go.mod' -o -name 'go.sum' -o -name '*.ttf' -o -name '*.py' \) -print \
+	| LC_ALL=C sort | xargs sha256sum | sha256sum | cut -c1-16)
+bin="$cache/serious-animator-$stamp"
+
+if [ ! -x "$bin" ]; then
+	if ! command -v go >/dev/null 2>&1; then
+		echo "serious-animator: Go 1.26 or newer is needed to build the renderer: https://go.dev/dl/" >&2
+		exit 127
+	fi
+	mkdir -p "$cache"
+	echo "serious-animator: building renderer ($stamp)..." >&2
+	tmp="$bin.tmp.$$"
+	trap 'rm -f "$tmp"' EXIT
+	(cd "$root" && CGO_ENABLED=0 go build -trimpath -o "$tmp" ./cmd/serious-animator)
+	mv -f "$tmp" "$bin"
+	trap - EXIT
+	# Drop binaries of older plugin versions.
+	find "$cache" -maxdepth 1 -type f -name 'serious-animator-*' ! -name "serious-animator-$stamp" -delete 2>/dev/null || true
+fi
+
+exec "$bin" "$@"
