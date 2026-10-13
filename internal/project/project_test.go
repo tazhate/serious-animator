@@ -6,6 +6,8 @@ import (
 	"slices"
 	"strings"
 	"testing"
+
+	"github.com/tazhate/serious-animator/internal/geom"
 )
 
 func TestUnspokenWords(t *testing.T) {
@@ -53,7 +55,7 @@ func writeProject(t *testing.T, board, svg string) string {
 	return dir
 }
 
-const goodBoard = `{"title":"Тест","lang":"ru","scenes":[{"id":"s01","title":"Т","svg":"scenes/s01.svg","beats":[
+const goodBoard = `{"title":"Тест","lang":"ru","format":"horizontal","scenes":[{"id":"s01","title":"Т","svg":"scenes/s01.svg","beats":[
   {"label":"СОЛНЦЕ","narration":"Солнце дает свет."},
   {"label":"ВОДА","narration":"Вода поднимается по корням."}]}]}`
 
@@ -125,5 +127,51 @@ func TestUnknownFieldIsAnError(t *testing.T) {
 	dir := writeProject(t, `{"title":"x","scenes":[],"sceens":[]}`, goodSVG)
 	if _, _, err := Load(dir); err == nil {
 		t.Fatal("typo in a field name should fail")
+	}
+}
+
+func TestFormat(t *testing.T) {
+	vertical := strings.Replace(goodBoard, `"format":"horizontal",`, "", 1)
+	tallSVG := strings.Replace(goodSVG, `viewBox="0 0 1600 900"`, `viewBox="0 0 900 1600"`, 1)
+
+	p, probs, err := Load(writeProject(t, vertical, tallSVG))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !p.Board.Vertical() || p.Board.Format != FormatVertical {
+		t.Fatalf("default format %q, want vertical", p.Board.Format)
+	}
+	if w, h := p.Board.Frame(); w != 900 || h != 1600 {
+		t.Fatalf("vertical frame %vx%v", w, h)
+	}
+	if HasErrors(probs) {
+		t.Fatalf("vertical project: %v", probs)
+	}
+
+	_, probs, err = Load(writeProject(t, vertical, goodSVG))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if msg := messages(probs); !HasErrors(probs) || !strings.Contains(msg, "does not fit a vertical video") {
+		t.Fatalf("landscape scene in a vertical video not reported:\n%s", msg)
+	}
+
+	bad := strings.Replace(goodBoard, `"horizontal"`, `"square"`, 1)
+	_, probs, err = Load(writeProject(t, bad, goodSVG))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(messages(probs), `format "square"`) {
+		t.Fatalf("bad format not reported: %v", probs)
+	}
+}
+
+func TestCameraOnByFrame(t *testing.T) {
+	board := geom.Rect{Max: geom.Pt{X: 1800, Y: 3200}}
+	if !CameraOn(Scene{}, board, 900, 1600) {
+		t.Error("a 1800x3200 board in a vertical video needs the camera")
+	}
+	if CameraOn(Scene{}, geom.Rect{Max: geom.Pt{X: 900, Y: 1600}}, 900, 1600) {
+		t.Error("one vertical frame needs no camera")
 	}
 }

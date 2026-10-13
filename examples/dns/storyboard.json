@@ -3,6 +3,7 @@
   "lang": "ru",
   "voice": "ru-RU-SvetlanaNeural",
   "rate": "+0%",
+  "format": "horizontal",
   "scenes": [
     {
       "id": "s01",

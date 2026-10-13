@@ -31,6 +31,15 @@ var Qualities = map[string]Quality{
 	"high":   {Name: "high", W: 1920, H: 1080, FPS: 30, CRF: 19},
 }
 
+// Oriented turns the preset to the video's format: 1280x720 becomes 720x1280
+// for a vertical video.
+func (q Quality) Oriented(vertical bool) Quality {
+	if vertical != (q.H > q.W) {
+		q.W, q.H = q.H, q.W
+	}
+	return q
+}
+
 // DeviceMat maps the viewBox onto a w×h canvas, keeping the aspect ratio and
 // centering (preserveAspectRatio="xMidYMid meet").
 func DeviceMat(vb geom.Rect, w, h int) geom.Mat {
@@ -57,6 +66,8 @@ const (
 type SceneConfig struct {
 	ID         string
 	W, H       int
+	FrameW     float64 // one camera frame in viewBox units; 1600x900 when unset
+	FrameH     float64
 	Roughness  float64
 	Camera     bool
 	Dim        bool
@@ -70,7 +81,7 @@ type Scene struct {
 	id    string
 	vb    geom.Rect
 	w, h  int
-	s720  float64 // output height / 720, for the marker size
+	s720  float64 // output short side / 720, for the marker size
 	unit  float64 // 720p pixels per viewBox unit in the reference view
 	items []*item
 	boxes map[string]geom.Rect
@@ -93,7 +104,7 @@ type Scene struct {
 // PrepareScene flattens and roughens the drawing once.
 func PrepareScene(d *svgscene.Scene, cfg SceneConfig) *Scene {
 	sc := &Scene{
-		id: cfg.ID, vb: d.ViewBox, w: cfg.W, h: cfg.H, s720: float64(cfg.H) / 720,
+		id: cfg.ID, vb: d.ViewBox, w: cfg.W, h: cfg.H, s720: float64(min(cfg.W, cfg.H)) / 720,
 		boxes: d.Boxes, cam: cfg.Camera, dim: cfg.Dim, trans: cfg.Transition, beatCams: cfg.BeatCams,
 	}
 	if sc.trans == "" {
@@ -101,9 +112,18 @@ func PrepareScene(d *svgscene.Scene, cfg SceneConfig) *Scene {
 	}
 	ref := d.ViewBox
 	if sc.cam {
-		ref = geom.Rect{Max: geom.Pt{X: project.FrameW, Y: project.FrameH}}
+		fw, fh := cfg.FrameW, cfg.FrameH
+		if fw <= 0 || fh <= 0 {
+			fw, fh = 1600, 900
+		}
+		ref = geom.Rect{Max: geom.Pt{X: fw, Y: fh}}
 	}
-	sc.unit = min(1280/ref.W(), 720/ref.H())
+	// Pixels of a 720p frame of the same shape as the output.
+	refW, refH := 1280.0, 720.0
+	if cfg.H > cfg.W {
+		refW, refH = refH, refW
+	}
+	sc.unit = min(refW/ref.W(), refH/ref.H())
 	seed := geom.HashString(cfg.ID)
 	motions := make([]*motion, len(d.Motions))
 	for i := range d.Motions {

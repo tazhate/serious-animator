@@ -1,7 +1,7 @@
 ---
 name: animate
 description: Make a narrated hand-drawn whiteboard explainer video (MP4) from a topic or question. Claude writes the storyboard, draws every scene as SVG, and the serious-animator renderer animates each stroke while edge-tts reads the narration. Use when the user asks for an explainer video, a whiteboard animation, or "animate/explain X as a video".
-argument-hint: "<topic or question> [--scenes N] [--quality low|medium|high] [--voice NAME]"
+argument-hint: "<topic or question> [--scenes N] [--quality low|medium|high] [--voice NAME] [--horizontal]"
 allowed-tools: Bash(serious-animator *) Read Write Edit
 ---
 
@@ -22,10 +22,14 @@ with Go on first use, which takes a few seconds.
 
 2. **Storyboard.** Read [references/storyboard.md](references/storyboard.md),
    then write `storyboard.json`. Narration language = the language of the
-   request. Honour `--scenes N` and `--voice` if given.
+   request. Honour `--scenes N` and `--voice` if given. The video is
+   vertical (9:16) unless the request asks for a horizontal, widescreen or
+   16:9 video or passes `--horizontal`; then set `"format": "horizontal"`.
 
 3. **Scenes.** Read [references/svg-style.md](references/svg-style.md), then
-   write `scenes/s01.svg`, `scenes/s02.svg`, ... Every element must carry the
+   write `scenes/s01.svg`, `scenes/s02.svg`, ... on the canvas of the chosen
+   format (vertical: `viewBox="0 0 900 1600"`, laid out as a column; see
+   "Vertical layout"). Every element must carry the
    beat it belongs to (`data-beat` on it or on a parent `<g>`). Pick the
    tools per scene: a camera board for a mechanism with many parts, a spin or
    a move where motion is the point, a `circle@N` highlight for callbacks,
@@ -64,7 +68,7 @@ with Go on first use, which takes a few seconds.
    - `--no-audio` renders a silent video timed by text length, if the user
      only needs the animation.
 
-7. **Report.** Give the output path, duration and scene count. Offer concrete
+7. **Report.** Give the output path, format, duration and scene count. Offer concrete
    follow-ups: change a scene, slow the voice (`"rate": "-10%"`), render in
    high quality.
 

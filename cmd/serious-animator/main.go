@@ -38,6 +38,7 @@ Usage:
 
 DIR is a project directory with storyboard.json and the scene SVGs.
 Quality presets: low (480p20), medium (720p24, default), high (1080p30).
+The storyboard's "format" turns them: vertical 9:16 (default) or horizontal 16:9.
 `
 
 func main() {

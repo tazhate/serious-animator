@@ -11,7 +11,7 @@ import (
 
 // Camera framing limits, in viewBox units.
 const (
-	minViewW      = 1000.0 // closest zoom: captions stay large, not huge
+	minViewShort  = 562.5 // closest zoom, short side: captions stay large, not huge
 	viewPadFrac   = 0.12
 	viewPadMin    = 60.0
 	moveMin       = 0.8
@@ -81,13 +81,14 @@ func fitAspect(r geom.Rect, a float64) geom.Rect {
 }
 
 // frameBox turns the bounds of what a beat draws into a camera view: padded,
-// at the output aspect, not closer than minViewW, inside the board.
+// at the output aspect, not closer than minViewShort, inside the board.
 func (sc *Scene) frameBox(r geom.Rect) geom.Rect {
 	board := sc.boardView()
 	pad := max(viewPadFrac*max(r.W(), r.H()), viewPadMin)
 	v := fitAspect(r.Inset(pad), sc.aspect())
-	if v.W() < minViewW {
-		v = rectAt(center(v), minViewW, minViewW/sc.aspect())
+	if s := min(v.W(), v.H()); s < minViewShort {
+		k := minViewShort / s
+		v = rectAt(center(v), v.W()*k, v.H()*k)
 	}
 	if v.W() >= board.W() || v.H() >= board.H() {
 		return board

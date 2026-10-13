@@ -14,7 +14,14 @@ stamp=$(cd "$root" && find cmd internal assets go.mod go.sum -type f \
 bin="$cache/serious-animator-$stamp"
 
 if [ ! -x "$bin" ]; then
-	if ! command -v go >/dev/null 2>&1; then
+	# Services and IDEs often run without the login PATH: try the places the
+	# official installer and common setups put Go.
+	go=$(command -v go 2>/dev/null || true)
+	for g in /usr/local/go/bin/go "$HOME/go/bin/go" "$HOME/.local/go/bin/go" /opt/homebrew/bin/go /usr/lib/go/bin/go; do
+		[ -n "$go" ] && break
+		[ -x "$g" ] && go=$g
+	done
+	if [ -z "$go" ]; then
 		echo "serious-animator: Go 1.26 or newer is needed to build the renderer: https://go.dev/dl/" >&2
 		exit 127
 	fi
@@ -22,7 +29,7 @@ if [ ! -x "$bin" ]; then
 	echo "serious-animator: building renderer ($stamp)..." >&2
 	tmp="$bin.tmp.$$"
 	trap 'rm -f "$tmp"' EXIT
-	(cd "$root" && CGO_ENABLED=0 go build -trimpath -o "$tmp" ./cmd/serious-animator)
+	(cd "$root" && CGO_ENABLED=0 "$go" build -trimpath -o "$tmp" ./cmd/serious-animator)
 	mv -f "$tmp" "$bin"
 	trap - EXIT
 	# Drop binaries of older plugin versions.

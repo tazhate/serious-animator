@@ -14,6 +14,7 @@ is saying at that moment.
   "lang": "en",
   "voice": "en-US-AndrewMultilingualNeural",
   "rate": "+0%",
+  "format": "vertical",
   "music": "generated",
   "scenes": [
     {
@@ -35,6 +36,7 @@ is saying at that moment.
 | `lang` | Narration language code. Picks the default voice when `voice` is empty. |
 | `voice` | edge-tts voice. Defaults: `ru` = `ru-RU-SvetlanaNeural`, `en` = `en-US-AndrewMultilingualNeural`. List voices with `serious-animator voices --lang ru`. |
 | `rate` | Speech speed, `+0%`, `-10%`, `+5%`. |
+| `format` | `"vertical"` (9:16, default, for phones) or `"horizontal"` (16:9). Decides the `viewBox` of every scene, see svg-style.md. |
 | `scenes` | 1-12 scenes. Unknown fields are rejected, so mind typos. |
 | `id` | Lowercase, `[a-z0-9_-]`, unique: `s01`, `s02`... |
 | `svg` | Path relative to the project directory, ends in `.svg`. |
@@ -45,7 +47,7 @@ is saying at that moment.
 | `camera` | Optional, beat, camera boards only: `"board"` (whole board), `"hold"` (stay), `"#id"` (frame that element or group). Empty: frame what the beat draws. |
 | `dim` | Optional, scene: `true` fades earlier beats while a new one is drawn, so the eye goes to the new part. The last beat brings everything back. Good for busy scenes and camera boards. |
 | `transition` | Optional, scene: how it hands over to the next scene, `"swipe"` (default), `"fade"` or `"cut"`. |
-| `camera` (scene) | Optional: `"auto"` or `"off"`. Empty: on when the SVG board is larger than one 1600x900 frame. |
+| `camera` (scene) | Optional: `"auto"` or `"off"`. Empty: on when the SVG board is larger than one frame (900x1600 vertical, 1600x900 horizontal). |
 | `music` | Optional: `"generated"` for a soft generated pad, or a music file path inside the project (`mp3`, `wav`, `ogg`, `m4a`, `flac`, `opus`), looped. It ducks under the voice. |
 | `music_volume` | Optional: music level in dB, default -20, range -40 to -6. |
 | `sfx` | Optional: `false` turns off the pop, whoosh and marker sounds. |

@@ -52,7 +52,9 @@ type Result struct {
 }
 
 // Configs returns the per-scene settings from the storyboard.
+// q must already be Oriented to the storyboard's format.
 func Configs(proj *project.Project, q Quality, roughness float64) []SceneConfig {
+	fw, fh := proj.Board.Frame()
 	out := make([]SceneConfig, len(proj.Board.Scenes))
 	for si, sc := range proj.Board.Scenes {
 		cams := make([]string, len(sc.Beats))
@@ -61,10 +63,10 @@ func Configs(proj *project.Project, q Quality, roughness float64) []SceneConfig 
 		}
 		on := false
 		if d := proj.Drawings[si]; d != nil {
-			on = project.CameraOn(sc, d.ViewBox)
+			on = project.CameraOn(sc, d.ViewBox, fw, fh)
 		}
 		out[si] = SceneConfig{
-			ID: sc.ID, W: q.W, H: q.H, Roughness: roughness,
+			ID: sc.ID, W: q.W, H: q.H, FrameW: fw, FrameH: fh, Roughness: roughness,
 			Camera: on, Dim: sc.Dim, Transition: sc.Transition, BeatCams: cams,
 		}
 	}
@@ -78,7 +80,7 @@ func Video(ctx context.Context, proj *project.Project, out string, o Options) (R
 		log = slog.New(slog.DiscardHandler)
 	}
 	board := proj.Board
-	q := o.Quality
+	q := o.Quality.Oriented(board.Vertical())
 
 	// 1. Narration clips, one per beat.
 	var texts []string

@@ -41,6 +41,10 @@ type Storyboard struct {
 	Rate   string  `json:"rate,omitempty"`
 	Scenes []Scene `json:"scenes"`
 
+	// Format is "vertical" (9:16, for phones) or "horizontal" (16:9);
+	// vertical when unset.
+	Format string `json:"format,omitempty"`
+
 	// Music is a project-relative audio file or "generated"; empty for none.
 	Music string `json:"music,omitempty"`
 	// MusicVolume is the music level in dB, -20 when unset.
@@ -57,7 +61,7 @@ type Scene struct {
 	Beats []Beat `json:"beats"`
 
 	// Camera is "auto" (follow the beats), "off", or empty: auto when the
-	// board is larger than one 1600x900 frame.
+	// board is larger than one frame (900x1600 or 1600x900).
 	Camera string `json:"camera,omitempty"`
 	// Dim fades the elements of earlier beats while a new beat is drawn.
 	Dim bool `json:"dim,omitzero"`
@@ -77,18 +81,20 @@ type Beat struct {
 
 // Limits for the optional fields.
 const (
-	MaxPause        = 3.0
-	DefaultMusicDB  = -20.0
-	MinMusicDB      = -40.0
-	MaxMusicDB      = -6.0
-	MusicGenerated  = "generated"
-	CameraAuto      = "auto"
-	CameraOff       = "off"
-	TransitionSwipe = "swipe"
-	TransitionFade  = "fade"
-	TransitionCut   = "cut"
-	BeatCameraBoard = "board"
-	BeatCameraHold  = "hold"
+	MaxPause         = 3.0
+	DefaultMusicDB   = -20.0
+	MinMusicDB       = -40.0
+	MaxMusicDB       = -6.0
+	MusicGenerated   = "generated"
+	CameraAuto       = "auto"
+	CameraOff        = "off"
+	TransitionSwipe  = "swipe"
+	TransitionFade   = "fade"
+	TransitionCut    = "cut"
+	BeatCameraBoard  = "board"
+	BeatCameraHold   = "hold"
+	FormatVertical   = "vertical"
+	FormatHorizontal = "horizontal"
 )
 
 var musicExts = []string{".mp3", ".wav", ".ogg", ".m4a", ".flac", ".opus"}
@@ -99,6 +105,17 @@ func (b *Storyboard) MusicDB() float64 {
 		return DefaultMusicDB
 	}
 	return *b.MusicVolume
+}
+
+// Vertical reports whether the video is 9:16.
+func (b *Storyboard) Vertical() bool { return b.Format != FormatHorizontal }
+
+// Frame returns the size of one camera frame on the board, in viewBox units.
+func (b *Storyboard) Frame() (w, h float64) {
+	if b.Vertical() {
+		return frameShort, frameLong
+	}
+	return frameLong, frameShort
 }
 
 // SFXOn reports whether sound effects are wanted.
@@ -184,6 +201,9 @@ func Load(dir string) (*Project, []Problem, error) {
 	if p.Board.Rate == "" {
 		p.Board.Rate = "+0%"
 	}
+	if p.Board.Format == "" {
+		p.Board.Format = FormatVertical
+	}
 	probs := p.validateBoard()
 	p.Drawings = make([]*svgscene.Scene, len(p.Board.Scenes))
 	for i := range p.Board.Scenes {
@@ -209,6 +229,9 @@ func (p *Project) validateBoard() []Problem {
 	}
 	if !rateRe.MatchString(b.Rate) {
 		errf("rate %q must look like +0%% or -10%%", b.Rate)
+	}
+	if b.Format != FormatVertical && b.Format != FormatHorizontal {
+		errf("format %q, want %q or %q", b.Format, FormatVertical, FormatHorizontal)
 	}
 	switch {
 	case b.Music == "", b.Music == MusicGenerated:
@@ -353,12 +376,17 @@ func (p *Project) loadDrawing(i int) []Problem {
 			add(m.Line, true, "data-motion-beat %d, but the scene has %d beats", m.Beat, nb)
 		}
 	}
-	if CameraOn(sc, d.ViewBox) {
-		if r := d.ViewBox.W() / d.ViewBox.H(); math.Abs(r-16.0/9) > 0.02 {
-			add(0, false, "the camera frames a 16:9 view; a %.0fx%.0f board leaves margins", d.ViewBox.W(), d.ViewBox.H())
+	fw, fh := p.Board.Frame()
+	vw, vh := d.ViewBox.W(), d.ViewBox.H()
+	if (vw > vh && fw < fh) || (vw < vh && fw > fh) {
+		add(0, true, "viewBox %.0fx%.0f does not fit a %s video; draw on %.0fx%.0f (or a larger board of that shape), or set \"format\" in %s",
+			vw, vh, p.Board.Format, fw, fh, File)
+	} else if CameraOn(sc, d.ViewBox, fw, fh) {
+		if r := vw / vh; math.Abs(r-fw/fh) > 0.02 {
+			add(0, false, "the camera frames a %.0fx%.0f view; a %.0fx%.0f board leaves margins", fw, fh, vw, vh)
 		}
-		if d.ViewBox.W() > 4800 {
-			add(0, false, "board is %.0f wide; camera moves get long, keep it under 4800", d.ViewBox.W())
+		if long := max(vw, vh); long > 4800 {
+			add(0, false, "board is %.0f on its long side; camera moves get long, keep it under 4800", long)
 		}
 	}
 	for bi, n := range perBeat {
@@ -440,20 +468,21 @@ func containsFold(hay, needle string) bool {
 
 func joinWords(w []string) string { return strings.Join(w, " ") }
 
-// FrameW and FrameH are the size of one camera frame on the board.
+// One camera frame on the board is frameLong x frameShort units, turned to
+// the video's format.
 const (
-	FrameW = 1600.0
-	FrameH = 900.0
+	frameLong  = 1600.0
+	frameShort = 900.0
 )
 
 // CameraOn reports whether a scene is filmed with a moving camera: when asked
-// for, or when the board is clearly larger than one frame.
-func CameraOn(sc Scene, vb geom.Rect) bool {
+// for, or when the board is clearly larger than one fw x fh frame.
+func CameraOn(sc Scene, vb geom.Rect, fw, fh float64) bool {
 	switch sc.Camera {
 	case CameraAuto:
 		return true
 	case CameraOff:
 		return false
 	}
-	return vb.W()*vb.H() > 1.2*FrameW*FrameH
+	return vb.W()*vb.H() > 1.2*fw*fh
 }

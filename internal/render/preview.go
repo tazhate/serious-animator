@@ -49,8 +49,9 @@ func Preview(proj *project.Project, dir string, o PreviewOptions) ([]string, err
 		paths = append(paths, path)
 		return nil
 	}
-	cfgs := Configs(proj, o.Quality, o.Roughness)
-	w := newWorker(raster.Paper(o.Quality.W, o.Quality.H, 1))
+	q := o.Quality.Oriented(proj.Board.Vertical())
+	cfgs := Configs(proj, q, o.Roughness)
+	w := newWorker(raster.Paper(q.W, q.H, 1))
 	for si, sc := range proj.Board.Scenes {
 		d := proj.Drawings[si]
 		if d == nil {

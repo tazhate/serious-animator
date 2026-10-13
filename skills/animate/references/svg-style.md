@@ -9,13 +9,45 @@ handwriting font (Caveat, Latin and Cyrillic).
 
 ## Canvas
 
-- Root: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">`.
-  One frame is 1600x900, so sizes below are in those units.
-- A larger board (for example `0 0 3200 1800`, keep it 16:9) turns on the
-  **camera**: it frames each beat in turn and pulls back to the whole board at
-  the end of the scene. See "Camera boards" below.
+The storyboard's `format` sets the shape of the video. **Vertical is the
+default**: most viewers watch on a phone.
+
+| `format` | One frame (`viewBox`) | Camera board | Output, medium |
+|---|---|---|---|
+| `vertical` (default) | `0 0 900 1600` | `0 0 1800 3200` | 720x1280 |
+| `horizontal` | `0 0 1600 900` | `0 0 3200 1800` | 1280x720 |
+
+- Every scene SVG uses the frame of the storyboard's format. A landscape
+  `viewBox` in a vertical video (or the other way round) is an error.
+- A board larger than one frame, in the same shape, turns on the **camera**:
+  it frames each beat in turn and pulls back to the whole board at the end of
+  the scene. See "Camera boards" below.
 - The paper background is drawn by the renderer; do not draw one.
 - Keep everything at least 40 units from the edges.
+- Sizes below are in viewBox units. One unit is the same size on screen in
+  both formats, so fonts and stroke widths do not change; only the layout
+  does.
+
+## Vertical layout
+
+A 900-unit-wide frame holds far less side by side than 1600. Lay vertical
+scenes out as a column:
+
+- **Top to bottom in narration order.** Rows of one icon, or two icons side
+  by side at most. Arrows mostly run down.
+- **Safe zone.** Players on phones put buttons and captions over the bottom
+  and the right edge (Telegram, Shorts, Reels, TikTok). Keep everything that
+  matters inside `x` 60-840 and `y` 60-1380; the band under 1380 is for a
+  small detail at most.
+- **Heading** at the top center, `y` around 140, `font-size` 64-72. Up to
+  about 20 characters fit on a line; split a longer heading into two
+  `<text>` lines (`y` 130 and 205) or shorten it.
+- **Icons** are larger than in a wide frame: 220-340 units, about a third of
+  the width, so they read on a small screen.
+- **Captions** `font-size` 46-54 directly under their icon; at most about 14
+  characters per line at 52.
+- Three or four rows fill the frame. If a scene needs five or more steps,
+  use a camera board (`0 0 1800 3200`) or split the scene.
 
 ## Style
 
@@ -41,12 +73,14 @@ handwriting font (Caveat, Latin and Cyrillic).
   `data-fill="solid"` to keep a larger shape flat, for example a thin bar, a
   small badge or a cell of a grid.
 - Simple doodle icons, flat colors, no gradients, shadows, 3D or texture.
-- Each icon is small (about 1/6 of the frame width, 150-300 units) and
+- Each icon is 150-300 units (220-340 in a vertical frame) and
   clearly separated from every other icon, caption and arrow by white space.
   Nothing touches or overlaps except an arrow tip near its target.
-- Spread elements over the whole frame: left to right in narration order,
-  or around the main subject in the middle.
-- Heading at the top center: `font-size` 70-80, `y` around 110-120.
+- Spread elements over the whole frame: top to bottom in narration order in
+  a vertical video; left to right, or around the main subject in the middle,
+  in a horizontal one.
+- Heading at the top center: vertical `font-size` 64-72 at `y` around 140;
+  horizontal `font-size` 70-80 at `y` around 110-120.
 - Captions directly under or beside their own icon: `font-size` 44-56, the
   beat's `label` text, uppercase for Latin and Cyrillic alike.
 - Arrows: a curved `path` with `fill="none"`, `stroke-width` 5, plus a
@@ -116,10 +150,12 @@ Motion rules:
 ## Camera boards
 
 For a scene with many parts (a mechanism, a map, a process with stages), draw
-a board larger than one frame, `viewBox="0 0 3200 1800"`. The camera then:
+a board larger than one frame and of the same shape: `viewBox="0 0 1800 3200"`
+for vertical, `"0 0 3200 1800"` for horizontal. The camera then:
 
-- frames each beat's elements with some margin, never closer than a
-  1000-unit-wide view, so captions stay readable;
+- frames each beat's elements with some margin, never closer than a view
+  whose short side is 562 units (562x1000 vertical, 1000x562 horizontal), so
+  captions stay readable;
 - glides to the next beat (0.8-1.5 s) just before it is drawn, and stays put
   when the next beat is already in view;
 - pulls back to the whole board at the end of the scene as a recap.
@@ -161,27 +197,32 @@ attribute gets filled black, as in any SVG viewer. Always write
 
 ## Example scene
 
+Vertical (`format` unset or `"vertical"`):
+
 ```svg
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1600">
   <g data-beat="1" stroke="#1e1e1e" stroke-width="6">
-    <text x="800" y="115" font-size="76" text-anchor="middle" fill="#1e1e1e" stroke="none" data-nodim="">HOW PLANTS EAT</text>
-    <circle cx="300" cy="300" r="70" fill="#ffd43b"/>
-    <path d="M300 200 V180 M300 400 V420 M200 300 H180 M400 300 H420" fill="none" stroke-width="5"/>
-    <text x="300" y="470" font-size="52" text-anchor="middle" fill="#1e1e1e" stroke="none">SUNLIGHT</text>
+    <text x="450" y="145" font-size="68" text-anchor="middle" fill="#1e1e1e" stroke="none" data-nodim="">HOW PLANTS EAT</text>
+    <circle cx="450" cy="390" r="95" fill="#ffd43b"/>
+    <path d="M450 255 V230 M450 525 V550 M315 390 H290 M585 390 H610" fill="none" stroke-width="5"/>
+    <text x="450" y="635" font-size="52" text-anchor="middle" fill="#1e1e1e" stroke="none">SUNLIGHT</text>
   </g>
-  <g data-beat="2" stroke="#1e1e1e" stroke-width="6">
-    <path d="M800 640 V430" fill="none"/>
-    <path d="M800 520 Q720 470 700 400 Q780 420 800 500" fill="#8ce99a"/>
-    <path d="M800 480 Q880 430 900 360 Q820 380 800 460" fill="#8ce99a"/>
-    <path d="M800 640 Q770 690 740 700 M800 640 Q830 690 860 705" fill="none" stroke-width="4"/>
-    <text x="800" y="780" font-size="52" text-anchor="middle" fill="#1e1e1e" stroke="none">PLANT</text>
+  <g data-beat="2" stroke="#1e1e1e" stroke-width="5" fill="none">
+    <path d="M450 670 Q470 740 450 800"/>
+    <path d="M428 776 L450 805 L472 776"/>
   </g>
-  <g data-beat="3" stroke="#1e1e1e" stroke-width="5" fill="none">
-    <path d="M390 360 Q560 360 680 430"/>
-    <path d="M652 413 L683 431 L650 442"/>
+  <g data-beat="3" stroke="#1e1e1e" stroke-width="6">
+    <path d="M450 1180 V900" fill="none"/>
+    <path d="M450 1020 Q340 960 315 860 Q425 885 450 990" fill="#8ce99a"/>
+    <path d="M450 970 Q560 910 585 810 Q475 835 450 940" fill="#8ce99a"/>
+    <path d="M450 1180 Q410 1240 370 1255 M450 1180 Q490 1240 530 1260" fill="none" stroke-width="4"/>
+    <text x="450" y="1340" font-size="52" text-anchor="middle" fill="#1e1e1e" stroke="none">PLANT</text>
   </g>
 </svg>
 ```
+
+Horizontal (`"format": "horizontal"`): the same ideas on `viewBox="0 0 1600
+900"`, flowing left to right; see `examples/dns` in the plugin.
 
 ## Checking your drawing
 

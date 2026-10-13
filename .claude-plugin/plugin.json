@@ -1,6 +1,6 @@
 {
   "name": "serious-animator",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Narrated hand-drawn whiteboard explainer videos: Claude writes the script and draws SVG scenes, a Go renderer animates every stroke in sync with edge-tts narration.",
   "author": {
     "name": "Denis"

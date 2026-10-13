@@ -235,7 +235,7 @@ func TestCameraPlan(t *testing.T) {
 	}
 	for f := range int(plan.Scenes[0].Dur * 24) {
 		v := cam.at(float64(f) / 24)
-		if math.Abs(v.W()/v.H()-16.0/9) > 1e-6 || v.W() < minViewW-1e-6 {
+		if math.Abs(v.W()/v.H()-16.0/9) > 1e-6 || v.H() < minViewShort-1e-6 {
 			t.Fatalf("view %v", v)
 		}
 	}
@@ -244,6 +244,45 @@ func TestCameraPlan(t *testing.T) {
 	}
 	if mv := cam.moves[0]; sc.beatStart[1] < mv.t1-arriveEarly-1e-9 {
 		t.Fatalf("camera arrives at %v, beat 2 draws at %v", mv.t1, sc.beatStart[1])
+	}
+}
+
+const tallBoardSVG = `<svg viewBox="0 0 1800 3200">
+  <g data-beat="1"><circle cx="500" cy="500" r="150" fill="#a5d8ff" stroke="#222" stroke-width="6"/></g>
+  <g data-beat="2"><circle cx="1300" cy="2700" r="150" fill="#b2f2bb" stroke="#222" stroke-width="6"/></g>
+  <g data-beat="3"><circle cx="1250" cy="2650" r="60" fill="#ffc9c9" stroke="#222" stroke-width="6"/></g>
+</svg>`
+
+func TestCameraPlanVertical(t *testing.T) {
+	sc, plan := planned(t, tallBoardSVG, 180, 320, SceneConfig{Camera: true, FrameW: 900, FrameH: 1600, BeatCams: []string{"", "", ""}}, []int{24000, 24000, 24000})
+	if sc.unit != 0.8 {
+		t.Errorf("unit %v, want 0.8 like a horizontal frame", sc.unit)
+	}
+	if sc.s720 != 0.25 {
+		t.Errorf("s720 %v, want 180/720", sc.s720)
+	}
+	cam := sc.camera
+	if len(cam.moves) != 2 {
+		t.Fatalf("want a move to beat 2 and the final zoom-out, got %+v", cam.moves)
+	}
+	for f := range int(plan.Scenes[0].Dur * 24) {
+		v := cam.at(float64(f) / 24)
+		if math.Abs(v.W()/v.H()-9.0/16) > 1e-6 || v.W() < minViewShort-1e-6 {
+			t.Fatalf("view %v", v)
+		}
+	}
+	if got := cam.at(plan.Scenes[0].Dur); got != sc.boardView() {
+		t.Fatalf("scene ends on %v, want the whole board", got)
+	}
+}
+
+func TestQualityOriented(t *testing.T) {
+	q := Qualities["medium"]
+	if v := q.Oriented(true); v.W != 720 || v.H != 1280 {
+		t.Errorf("vertical medium = %dx%d", v.W, v.H)
+	}
+	if h := q.Oriented(true).Oriented(false); h.W != 1280 || h.H != 720 {
+		t.Errorf("back to horizontal = %dx%d", h.W, h.H)
 	}
 }
 
@@ -268,7 +307,7 @@ func TestVideoSilentEndToEnd(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(dir, "scenes"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	board := `{"title":"T","scenes":[{"id":"s01","title":"T","svg":"scenes/s01.svg","beats":[
+	board := `{"title":"T","format":"horizontal","scenes":[{"id":"s01","title":"T","svg":"scenes/s01.svg","beats":[
   {"label":"ЗАГОЛОВОК","narration":"Заголовок."},{"label":"СВЯЗЬ","narration":"Связь."}]}]}`
 	for name, body := range map[string]string{project.File: board, "scenes/s01.svg": testSVG} {
 		if err := os.WriteFile(filepath.Join(dir, name), []byte(body), 0o644); err != nil {
@@ -301,6 +340,41 @@ func TestVideoSilentEndToEnd(t *testing.T) {
 	entries, _ = os.ReadDir(filepath.Dir(out))
 	if len(entries) != 1 {
 		t.Fatalf("canceled render left files: %v", entries)
+	}
+}
+
+func TestVideoVerticalSize(t *testing.T) {
+	for _, bin := range []string{"ffmpeg", "ffprobe"} {
+		if _, err := exec.LookPath(bin); err != nil {
+			t.Skip(bin + " not installed")
+		}
+	}
+	dir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(dir, "scenes"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	board := `{"title":"T","scenes":[{"id":"s01","title":"T","svg":"scenes/s01.svg","beats":[
+  {"label":"А","narration":"А."},{"label":"Б","narration":"Б."},{"label":"В","narration":"В."}]}]}`
+	for name, body := range map[string]string{project.File: board, "scenes/s01.svg": tallBoardSVG} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	proj, _, err := project.Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := filepath.Join(dir, "v.mp4")
+	if _, err := Video(t.Context(), proj, out, Options{Quality: Qualities["low"], NoAudio: true}); err != nil {
+		t.Fatal(err)
+	}
+	got, err := exec.Command("ffprobe", "-v", "error", "-select_streams", "v:0",
+		"-show_entries", "stream=width,height", "-of", "csv=p=0", out).Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s := strings.TrimSpace(string(got)); s != "480,854" {
+		t.Fatalf("vertical video is %s, want 480,854", s)
 	}
 }
 
